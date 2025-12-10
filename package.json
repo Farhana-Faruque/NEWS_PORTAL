@@ -1,0 +1,20 @@
+{
+  "name": "news-portal",
+  "version": "1.0.0",
+  "description": "A simple news portal with JSON-Server",
+  "main": "index.html",
+  "scripts": {
+    "start": "json-server --watch db.json --port 4000"
+  },
+  "keywords": [
+    "news",
+    "json-server",
+    "crud"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "json-server": "^0.17.4"
+  },
+  "type": "commonjs"
+}

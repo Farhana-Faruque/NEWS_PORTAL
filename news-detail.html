@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Detail - News Portal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>NEWS PORTAL</h1>
+            <div class="user-info">
+                <span id="userInfo"></span>
+                <a href="news-list.html" class="btn btn-secondary">Back to List</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="newsDetail" class="news-detail">
+            <p class="loading">Loading...</p>
+        </div>
+
+        <div id="commentsSection" class="comments-section">
+            <h3>Comments</h3>
+            <div id="commentsList"></div>
+            
+            <form id="commentForm" class="comment-form">
+                <h4>Add a Comment</h4>
+                <textarea id="commentText" placeholder="Write your comment..." rows="3" required></textarea>
+                <button type="submit" class="btn btn-primary">Post</button>
+            </form>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        checkAuth();
+        const currentUser = getCurrentUser();
+        document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.name}`;
+
+        const newsId = new URLSearchParams(window.location.search).get('id');
+        let newsData = null;
+
+        async function loadNewsDetail() {
+            try {
+                const response = await fetch(`http://localhost:3000/news/${newsId}`);
+                newsData = await response.json();
+                
+                const usersResponse = await fetch('http://localhost:3000/users');
+                const users = await usersResponse.json();
+                
+                displayNewsDetail(newsData, users);
+                displayComments(newsData.comments, users);
+            } catch (error) {
+                console.error('Error loading news:', error);
+                document.getElementById('newsDetail').innerHTML = '<p class="error">Failed to load news.</p>';
+            }
+        }
+
+        function displayNewsDetail(news, users) {
+            const author = users.find(u => u.id === news.author_id);
+            const container = document.getElementById('newsDetail');
+            
+            container.innerHTML = `
+                <h2>${escapeHtml(news.title)}</h2>
+                <p class="author">By: ${author ? author.name : 'Unknown'}</p>
+                <div class="news-body">${escapeHtml(news.body)}</div>
+            `;
+        }
+
+        function displayComments(comments, users) {
+            const container = document.getElementById('commentsList');
+            
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p class="empty">No comments yet. Be the first to comment!</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                const commenter = users.find(u => u.id === comment.user_id);
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                commentDiv.innerHTML = `
+                    <p class="comment-author">${commenter ? commenter.name : 'Unknown'}</p>
+                    <p class="comment-text">${escapeHtml(comment.text)}</p>
+                    <p class="comment-time">${new Date(comment.timestamp).toLocaleString()}</p>
+                `;
+                container.appendChild(commentDiv);
+            });
+        }
+
+        document.getElementById('commentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const commentText = document.getElementById('commentText').value.trim();
+            
+            if (!commentText) {
+                alert('Comment cannot be empty');
+                return;
+            }
+
+            const newComment = {
+                id: Date.now(),
+                text: commentText,
+                user_id: currentUser.id,
+                timestamp: new Date().toISOString()
+            };
+
+            const updatedComments = [...(newsData.comments || []), newComment];
+
+            try {
+                await fetch(`http://localhost:3000/news/${newsId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        comments: updatedComments
+                    })
+                });
+
+                alert('Comment added successfully!');
+                document.getElementById('commentText').value = '';
+                loadNewsDetail();
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                alert('Failed to add comment.');
+            }
+        });
+
+        loadNewsDetail();
+    </script>
+</body>
+</html>
