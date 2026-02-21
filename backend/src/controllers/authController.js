@@ -10,27 +10,22 @@ const generateToken = (user) => {
   );
 };
 
-// POST /api/auth/register
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(409).json({ message: 'User with this email already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword },
       select: { id: true, name: true, email: true, createdAt: true }
     });
 
-    // Generate token
     const token = generateToken(user);
 
     res.status(201).json({
@@ -44,24 +39,20 @@ const register = async (req, res) => {
   }
 };
 
-// POST /api/auth/login
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Generate token
     const token = generateToken(user);
 
     res.json({
@@ -79,7 +70,6 @@ const login = async (req, res) => {
   }
 };
 
-// GET /api/auth/me
 const me = async (req, res) => {
   try {
     res.json({ user: req.user });

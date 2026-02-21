@@ -5,11 +5,9 @@ const { createNewsValidator, updateNewsValidator } = require('../validators/news
 const { validate } = require('../middleware/validate');
 const { authenticate } = require('../middleware/auth');
 
-// Public routes
 router.get('/', getAllNews);
 router.get('/:id', getNewsById);
 
-// Protected routes
 router.post('/', authenticate, createNewsValidator, validate, createNews);
 router.put('/:id', authenticate, updateNewsValidator, validate, updateNews);
 router.delete('/:id', authenticate, deleteNews);

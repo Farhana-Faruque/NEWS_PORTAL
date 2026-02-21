@@ -1,6 +1,5 @@
 const prisma = require('../config/database');
 
-// GET /api/news
 const getAllNews = async (req, res) => {
   try {
     const { search } = req.query;
@@ -29,7 +28,6 @@ const getAllNews = async (req, res) => {
   }
 };
 
-// GET /api/news/:id
 const getNewsById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -67,7 +65,6 @@ const getNewsById = async (req, res) => {
   }
 };
 
-// POST /api/news
 const createNews = async (req, res) => {
   try {
     const { title, body } = req.body;
@@ -95,7 +92,6 @@ const createNews = async (req, res) => {
   }
 };
 
-// PUT /api/news/:id
 const updateNews = async (req, res) => {
   try {
     const { id } = req.params;
@@ -106,7 +102,6 @@ const updateNews = async (req, res) => {
       return res.status(400).json({ message: 'Invalid news ID' });
     }
 
-    // Check if news exists
     const existingNews = await prisma.news.findUnique({
       where: { id: newsId }
     });
@@ -115,7 +110,6 @@ const updateNews = async (req, res) => {
       return res.status(404).json({ message: 'News not found' });
     }
 
-    // Check if user is the author
     if (existingNews.authorId !== req.user.id) {
       return res.status(403).json({ message: 'You can only edit your own news' });
     }
@@ -144,7 +138,6 @@ const updateNews = async (req, res) => {
   }
 };
 
-// DELETE /api/news/:id
 const deleteNews = async (req, res) => {
   try {
     const { id } = req.params;
@@ -154,7 +147,6 @@ const deleteNews = async (req, res) => {
       return res.status(400).json({ message: 'Invalid news ID' });
     }
 
-    // Check if news exists
     const existingNews = await prisma.news.findUnique({
       where: { id: newsId }
     });
@@ -163,7 +155,6 @@ const deleteNews = async (req, res) => {
       return res.status(404).json({ message: 'News not found' });
     }
 
-    // Check if user is the author
     if (existingNews.authorId !== req.user.id) {
       return res.status(403).json({ message: 'You can only delete your own news' });
     }

@@ -1,6 +1,5 @@
 const prisma = require('../config/database');
 
-// POST /api/news/:newsId/comments
 const createComment = async (req, res) => {
   try {
     const { newsId } = req.params;
@@ -11,7 +10,6 @@ const createComment = async (req, res) => {
       return res.status(400).json({ message: 'Invalid news ID' });
     }
 
-    // Check if news exists
     const news = await prisma.news.findUnique({
       where: { id: parsedNewsId }
     });
@@ -43,7 +41,6 @@ const createComment = async (req, res) => {
   }
 };
 
-// GET /api/news/:newsId/comments
 const getComments = async (req, res) => {
   try {
     const { newsId } = req.params;
@@ -78,7 +75,6 @@ const getComments = async (req, res) => {
   }
 };
 
-// DELETE /api/news/:newsId/comments/:id
 const deleteComment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -96,7 +92,6 @@ const deleteComment = async (req, res) => {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    // Only the comment author can delete
     if (comment.userId !== req.user.id) {
       return res.status(403).json({ message: 'You can only delete your own comments' });
     }
