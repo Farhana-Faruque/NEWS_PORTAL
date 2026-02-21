@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Portal</title>
+    <title>DU News Portal</title>
 </head>
 <body>
-    <script src="app.js"></script>
     <script>
-        // Redirect to login if not logged in, otherwise to news list
-        if (getToken()) {
+        const user = localStorage.getItem('currentUser');
+        if (user) {
             window.location.href = 'news-list.html';
         } else {
             window.location.href = 'login.html';

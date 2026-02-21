@@ -7,29 +7,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1>NEWS PORTAL</h1>
+    <div class="container">
+        <div class="header">
+            <h1>DU News Portal</h1>
             <div class="user-info">
                 <span id="userInfo"></span>
                 <a href="news-list.html" class="btn btn-secondary">Back to List</a>
             </div>
         </div>
-    </div>
-
-    <div class="container">
         <div id="newsDetail" class="news-detail">
             <p class="loading">Loading...</p>
         </div>
-
         <div id="commentsSection" class="comments-section">
             <h3>Comments</h3>
             <div id="commentsList"></div>
-            
             <form id="commentForm" class="comment-form">
                 <h4>Add a Comment</h4>
                 <textarea id="commentText" placeholder="Write your comment..." rows="3" required></textarea>
-                <button type="submit" class="btn btn-primary">Post</button>
+                <button type="submit" class="btn btn-primary">Post Comment</button>
             </form>
         </div>
     </div>
@@ -38,15 +33,18 @@
         checkAuth();
         const currentUser = getCurrentUser();
         document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.name}`;
-
         const newsId = new URLSearchParams(window.location.search).get('id');
         let newsData = null;
 
         async function loadNewsDetail() {
             try {
                 const response = await fetch(`${API_URL}/news/${newsId}`);
-                if (!response.ok) throw new Error('Failed to load');
                 newsData = await response.json();
+                
+                if (!response.ok) {
+                    document.getElementById('newsDetail').innerHTML = `<p class="error">${newsData.message || 'Failed to load news.'}</p>`;
+                    return;
+                }
                 
                 displayNewsDetail(newsData);
                 displayComments(newsData.comments);
@@ -55,18 +53,16 @@
                 document.getElementById('newsDetail').innerHTML = '<p class="error">Failed to load news.</p>';
             }
         }
-
         function displayNewsDetail(news) {
             const authorName = news.author ? news.author.name : 'Unknown';
             const container = document.getElementById('newsDetail');
             
             container.innerHTML = `
                 <h2>${escapeHtml(news.title)}</h2>
-                <p class="author">By: ${escapeHtml(authorName)} &middot; ${new Date(news.createdAt).toLocaleDateString()}</p>
+                <p class="author">By: ${authorName}</p>
                 <div class="news-body">${escapeHtml(news.body)}</div>
             `;
         }
-
         function displayComments(comments) {
             const container = document.getElementById('commentsList');
             
@@ -74,14 +70,13 @@
                 container.innerHTML = '<p class="empty">No comments yet. Be the first to comment!</p>';
                 return;
             }
-
             container.innerHTML = '';
             comments.forEach(comment => {
                 const commenterName = comment.user ? comment.user.name : 'Unknown';
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'comment';
                 commentDiv.innerHTML = `
-                    <p class="comment-author">${escapeHtml(commenterName)}</p>
+                    <p class="comment-author">${commenterName}</p>
                     <p class="comment-text">${escapeHtml(comment.text)}</p>
                     <p class="comment-time">${new Date(comment.createdAt).toLocaleString()}</p>
                 `;
@@ -99,26 +94,21 @@
                 return;
             }
 
-            if (commentText.length > 500) {
-                alert('Comment must be 500 characters or less');
-                return;
-            }
-
             try {
                 const response = await fetch(`${API_URL}/news/${newsId}/comments`, {
                     method: 'POST',
-                    headers: authHeaders(),
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ text: commentText })
                 });
 
-                handleApiError(response);
-
+                const data = await response.json();
+                
                 if (!response.ok) {
-                    const data = await response.json();
                     alert(data.message || 'Failed to add comment');
                     return;
                 }
 
+                alert('Comment added successfully!');
                 document.getElementById('commentText').value = '';
                 loadNewsDetail();
             } catch (error) {

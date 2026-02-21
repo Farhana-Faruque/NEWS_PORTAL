@@ -1,16 +1,19 @@
 {
-  "name": "newsportal-frontend",
+  "name": "news-portal",
   "version": "1.0.0",
-  "description": "News Portal Frontend",
+  "description": "A simple news portal frontend",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve -l 5500"
+    "start": "npx serve -l 3000"
   },
   "keywords": [
     "news",
     "frontend"
   ],
-  "author": "",
+  "author": "Your Name",
   "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
   "type": "commonjs"
 }

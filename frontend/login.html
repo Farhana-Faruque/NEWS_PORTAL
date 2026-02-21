@@ -9,67 +9,60 @@
 <body>
     <div class="container">
         <div class="login-card">
-            <h1>NEWS PORTAL</h1>
-            <h2 id="formTitle">User Login</h2>
-            <div id="errorMsg" class="error-message"></div>
-
+            <h1>DU News Portal</h1>
+            <h2>Login</h2>
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required placeholder="Enter your email">
                 </div>
                 <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" required placeholder="Enter your password">
                 </div>
-                <button type="submit" class="btn btn-primary">Sign In</button>
+                <button type="submit" class="btn btn-primary">Login</button>
             </form>
-
-            <form id="registerForm" style="display:none;">
-                <div class="form-group">
-                    <label for="regName">Name</label>
-                    <input type="text" id="regName" placeholder="Enter your name" required>
-                </div>
-                <div class="form-group">
-                    <label for="regEmail">Email</label>
-                    <input type="email" id="regEmail" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
-                    <label for="regPassword">Password</label>
-                    <input type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6">
-                </div>
-                <button type="submit" class="btn btn-primary">Register</button>
-            </form>
-
-            <p style="text-align:center; margin-top:16px; font-size:14px;">
-                <span id="toggleText">Don't have an account?</span>
-                <a href="#" id="toggleLink" style="color:#000; font-weight:600;">Register</a>
+            <p style="margin-top: 15px; text-align: center;">
+                Don't have an account? <a href="#" id="showRegister">Register here</a>
             </p>
+            
+            <div id="registerForm" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <h3>Register</h3>
+                <form id="regForm">
+                    <div class="form-group">
+                        <label for="regName">Name:</label>
+                        <input type="text" id="regName" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email:</label>
+                        <input type="email" id="regEmail" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password:</label>
+                        <input type="password" id="regPassword" required placeholder="Enter password (min 6 chars)" minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </form>
+            </div>
         </div>
     </div>
     <script src="app.js"></script>
     <script>
-        if (getToken()) {
+        // Check if already logged in
+        if (localStorage.getItem('token')) {
             window.location.href = 'news-list.html';
         }
 
-        let isLogin = true;
-
-        document.getElementById('toggleLink').addEventListener('click', function(e) {
+        document.getElementById('showRegister').addEventListener('click', function(e) {
             e.preventDefault();
-            isLogin = !isLogin;
-            document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
-            document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
-            document.getElementById('formTitle').textContent = isLogin ? 'User Login' : 'Create Account';
-            document.getElementById('toggleText').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-            document.getElementById('toggleLink').textContent = isLogin ? 'Register' : 'Login';
-            document.getElementById('errorMsg').style.display = 'none';
+            const regForm = document.getElementById('registerForm');
+            regForm.style.display = regForm.style.display === 'none' ? 'block' : 'none';
         });
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
             try {
                 const response = await fetch(`${API_URL}/auth/login`, {
@@ -77,11 +70,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (!response.ok) {
-                    showError(data.message || 'Login failed');
+                    alert(data.message || 'Login failed');
                     return;
                 }
 
@@ -90,14 +83,14 @@
                 window.location.href = 'news-list.html';
             } catch (error) {
                 console.error('Login error:', error);
-                showError('Failed to connect to server. Make sure the backend is running.');
+                alert('Failed to login. Make sure backend server is running.');
             }
         });
 
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        document.getElementById('regForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
 
             try {
@@ -106,12 +99,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, password })
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (!response.ok) {
-                    const msg = data.errors ? data.errors.map(e => e.message).join(', ') : data.message;
-                    showError(msg || 'Registration failed');
+                    alert(data.message || 'Registration failed');
                     return;
                 }
 
@@ -120,15 +112,9 @@
                 window.location.href = 'news-list.html';
             } catch (error) {
                 console.error('Register error:', error);
-                showError('Failed to connect to server. Make sure the backend is running.');
+                alert('Failed to register. Make sure backend server is running.');
             }
         });
-
-        function showError(msg) {
-            const el = document.getElementById('errorMsg');
-            el.textContent = msg;
-            el.style.display = 'block';
-        }
     </script>
 </body>
 </html>

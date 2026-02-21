@@ -7,19 +7,17 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1>NEWS PORTAL</h1>
+    <div class="container">
+        <div class="header">
+            <h1>DU News Portal</h1>
             <div class="user-info">
                 <span id="userInfo"></span>
                 <a href="news-list.html" class="btn btn-secondary">Cancel</a>
             </div>
         </div>
-    </div>
 
-    <div class="container">
         <div class="form-container">
-            <h2>Edit News Article</h2>
+            <h2>Edit News</h2>
             <form id="editNewsForm">
                 <div class="form-group">
                     <label for="title">Title *</label>
@@ -32,7 +30,7 @@
                     <span id="charCount" class="char-count">0 characters</span>
                 </div>
                 
-                <button type="submit" class="btn btn-primary">Update Article</button>
+                <button type="submit" class="btn btn-primary">Update News</button>
             </form>
         </div>
     </div>
@@ -47,14 +45,14 @@
         async function loadNews() {
             try {
                 const response = await fetch(`${API_URL}/news/${newsId}`);
+                const news = await response.json();
+                
                 if (!response.ok) {
-                    alert('Failed to load news.');
+                    alert(news.message || 'Failed to load news');
                     window.location.href = 'news-list.html';
                     return;
                 }
-                const news = await response.json();
                 
-                // Check if current user is the author
                 if (news.authorId !== currentUser.id) {
                     alert('You can only edit your own news!');
                     window.location.href = 'news-list.html';
@@ -71,7 +69,6 @@
             }
         }
 
-        // Character count
         document.getElementById('body').addEventListener('input', function() {
             const count = this.value.length;
             document.getElementById('charCount').textContent = `${count} character${count !== 1 ? 's' : ''}`;
@@ -83,7 +80,6 @@
             const title = document.getElementById('title').value.trim();
             const body = document.getElementById('body').value.trim();
             
-            // Validation
             if (!title) {
                 alert('Title cannot be empty');
                 return;
@@ -97,16 +93,14 @@
             try {
                 const response = await fetch(`${API_URL}/news/${newsId}`, {
                     method: 'PUT',
-                    headers: authHeaders(),
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ title, body })
                 });
 
-                handleApiError(response);
                 const data = await response.json();
-
+                
                 if (!response.ok) {
-                    const msg = data.errors ? data.errors.map(e => e.message).join(', ') : data.message;
-                    alert(msg || 'Failed to update news');
+                    alert(data.message || 'Failed to update news');
                     return;
                 }
 

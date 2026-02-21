@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 
-
+// GET /api/news
 const getAllNews = async (req, res) => {
   try {
     const { search } = req.query;
@@ -29,13 +29,18 @@ const getAllNews = async (req, res) => {
   }
 };
 
-
+// GET /api/news/:id
 const getNewsById = async (req, res) => {
   try {
     const { id } = req.params;
+    const newsId = parseInt(id);
+
+    if (isNaN(newsId)) {
+      return res.status(400).json({ message: 'Invalid news ID' });
+    }
 
     const news = await prisma.news.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: newsId },
       include: {
         author: {
           select: { id: true, name: true, email: true }
@@ -62,6 +67,7 @@ const getNewsById = async (req, res) => {
   }
 };
 
+// POST /api/news
 const createNews = async (req, res) => {
   try {
     const { title, body } = req.body;
@@ -89,19 +95,27 @@ const createNews = async (req, res) => {
   }
 };
 
+// PUT /api/news/:id
 const updateNews = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, body } = req.body;
+    const newsId = parseInt(id);
 
+    if (isNaN(newsId)) {
+      return res.status(400).json({ message: 'Invalid news ID' });
+    }
+
+    // Check if news exists
     const existingNews = await prisma.news.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: newsId }
     });
 
     if (!existingNews) {
       return res.status(404).json({ message: 'News not found' });
     }
 
+    // Check if user is the author
     if (existingNews.authorId !== req.user.id) {
       return res.status(403).json({ message: 'You can only edit your own news' });
     }
@@ -111,7 +125,7 @@ const updateNews = async (req, res) => {
     if (body !== undefined) updateData.body = body;
 
     const news = await prisma.news.update({
-      where: { id: parseInt(id) },
+      where: { id: newsId },
       data: updateData,
       include: {
         author: {
@@ -130,23 +144,31 @@ const updateNews = async (req, res) => {
   }
 };
 
+// DELETE /api/news/:id
 const deleteNews = async (req, res) => {
   try {
     const { id } = req.params;
+    const newsId = parseInt(id);
 
+    if (isNaN(newsId)) {
+      return res.status(400).json({ message: 'Invalid news ID' });
+    }
+
+    // Check if news exists
     const existingNews = await prisma.news.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: newsId }
     });
 
     if (!existingNews) {
       return res.status(404).json({ message: 'News not found' });
     }
 
+    // Check if user is the author
     if (existingNews.authorId !== req.user.id) {
       return res.status(403).json({ message: 'You can only delete your own news' });
     }
 
-    await prisma.news.delete({ where: { id: parseInt(id) } });
+    await prisma.news.delete({ where: { id: newsId } });
 
     res.json({ message: 'News deleted successfully' });
   } catch (error) {

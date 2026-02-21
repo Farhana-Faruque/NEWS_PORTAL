@@ -6,43 +6,46 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
+  // Clean existing data
   await prisma.comment.deleteMany();
   await prisma.news.deleteMany();
   await prisma.user.deleteMany();
 
+  // Create users
   const hashedPassword = await bcrypt.hash('password123', 10);
 
-  const kazi = await prisma.user.create({
+  const sabbir = await prisma.user.create({
     data: {
-      name: 'Kazi',
-      email: 'kazi@example.com',
+      name: 'Sabbir',
+      email: 'sabbir@example.com',
       password: hashedPassword
     }
   });
 
-  const farhana = await prisma.user.create({
+  const ahmed = await prisma.user.create({
     data: {
-      name: 'Farhana',
-      email: 'farhana@example.com',
+      name: 'Ahmed',
+      email: 'ahmed@example.com',
       password: hashedPassword
     }
   });
 
-  const faruque = await prisma.user.create({
+  const mohsin = await prisma.user.create({
     data: {
-      name: 'Faruque',
-      email: 'faruque@example.com',
+      name: 'Mohsin',
+      email: 'mohsin@example.com',
       password: hashedPassword
     }
   });
 
-  console.log('Users created:', { kazi: kazi.id, farhana: farhana.id, faruque: faruque.id });
+  console.log('Users created:', { sabbir: sabbir.id, ahmed: ahmed.id, mohsin: mohsin.id });
 
+  // Create news
   const news1 = await prisma.news.create({
     data: {
       title: 'Understanding Neural Networks: A Deep Dive into AI',
       body: 'Neural networks are the backbone of modern artificial intelligence. In this comprehensive article, we explore the fundamentals of neural networks, their architecture, and how they revolutionize machine learning. From simple perceptrons to complex deep learning models, neural networks have transformed how computers learn from data. We will discuss convolutional neural networks (CNNs), recurrent neural networks (RNNs), and the latest advances in transformer architectures that power today\'s AI systems. Whether you are a beginner or an experienced developer, this guide will help you understand how these powerful algorithms work and how to implement them effectively.',
-      authorId: kazi.id
+      authorId: sabbir.id
     }
   });
 
@@ -50,7 +53,7 @@ async function main() {
     data: {
       title: 'FIFA World Cup 2026: The Most Anticipated Tournament',
       body: 'The FIFA World Cup 2026 will be held in North America, marking a historic moment as the first World Cup to be hosted by three countries: the United States, Canada, and Mexico. This tournament will feature 48 teams instead of the traditional 32, opening doors for more nations to participate in football\'s greatest spectacle. We discuss the preparations, exciting fixtures, potential favorites, and what fans can expect from this unprecedented World Cup. With expanded participation and unique hosting arrangements, the 2026 World Cup promises to be more inclusive and exciting than ever before. From Argentina\'s title defense to emerging powerhouses, this tournament will showcase the beautiful game at its finest.',
-      authorId: farhana.id
+      authorId: ahmed.id
     }
   });
 
@@ -58,22 +61,23 @@ async function main() {
     data: {
       title: '2024 USA Election: Key Results and Implications',
       body: 'The United States held a pivotal election in 2024 with significant implications for domestic and international policy. This article provides a comprehensive analysis of the election results, including the presidential race, congressional seats, and important ballot measures across various states. We examine the key issues that drove voter behavior, from the economy to healthcare and climate change. The election saw various campaign strategies, debates, and mobilization efforts from both major parties. Understanding the election results helps us comprehend the current political landscape and the direction the nation is heading. We also explore how these results might affect future policy decisions and the political dynamics in Washington.',
-      authorId: faruque.id
+      authorId: mohsin.id
     }
   });
 
   console.log('News created:', { news1: news1.id, news2: news2.id, news3: news3.id });
 
+  // Create comments
   await prisma.comment.createMany({
     data: [
       {
         text: 'Excellent explanation of neural networks!',
-        userId: farhana.id,
+        userId: ahmed.id,
         newsId: news1.id
       },
       {
         text: 'Looking forward to more AI articles like this.',
-        userId: faruque.id,
+        userId: mohsin.id,
         newsId: news1.id
       }
     ]
@@ -83,7 +87,7 @@ async function main() {
   console.log('Seeding completed successfully!');
   console.log('\nDefault login credentials for all users:');
   console.log('Password: password123');
-  console.log('Emails: kazi@example.com, farhana@example.com, faruque@example.com');
+  console.log('Emails: sabbir@example.com, ahmed@example.com, mohsin@example.com');
 }
 
 main()

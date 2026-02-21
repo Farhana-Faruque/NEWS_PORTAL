@@ -7,21 +7,18 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1>NEWS PORTAL</h1>
+    <div class="container">
+        <div class="header">
+            <h1>DU News Portal</h1> 
             <div class="user-info">
                 <span id="userInfo"></span>
                 <button onclick="logout()" class="btn btn-secondary">Logout</button>
             </div>
         </div>
-    </div>
-
-    <div class="container">
 
         <div class="actions">
-            <a href="create-news.html" class="btn btn-primary">+ Create News</a>
-            <input type="text" id="searchInput" placeholder="Search news by title..." class="search-input">
+            <a href="create-news.html" class="btn btn-primary">➕ Create News</a>
+            <input type="text" id="searchInput" placeholder="🔍 Search news by title" class="search-input">
         </div>
 
         <div id="newsContainer" class="news-list">
@@ -32,14 +29,13 @@
     <script>
         checkAuth();
         const currentUser = getCurrentUser();
-        document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.name}`;
+        document.getElementById('userInfo').textContent = ` ${currentUser.name}`;
 
         let allNews = [];
 
         async function loadNews() {
             try {
                 const response = await fetch(`${API_URL}/news`);
-                if (!response.ok) throw new Error('Failed to load');
                 allNews = await response.json();
                 displayNews(allNews);
             } catch (error) {
@@ -47,8 +43,7 @@
                 document.getElementById('newsContainer').innerHTML = '<p class="error">Failed to load news.</p>';
             }
         }
-
-        function displayNews(newsList) {
+        async function displayNews(newsList) {
             const container = document.getElementById('newsContainer');
             
             if (newsList.length === 0) {
@@ -66,7 +61,7 @@
                 card.className = 'news-card';
                 card.innerHTML = `
                     <h3>${escapeHtml(news.title)}</h3>
-                    <p class="author">By: ${escapeHtml(authorName)} &middot; ${new Date(news.createdAt).toLocaleDateString()}</p>
+                    <p class="author">By: ${authorName}</p>
                     <p class="preview">${escapeHtml(news.body.substring(0, 150))}...</p>
                     <div class="comment-count">💬 ${commentCount} comment${commentCount !== 1 ? 's' : ''}</div>
                     <div class="news-actions">
@@ -87,13 +82,17 @@
             try {
                 const response = await fetch(`${API_URL}/news/${id}`, {
                     method: 'DELETE',
-                    headers: authHeaders()
+                    headers: getAuthHeaders()
                 });
-                handleApiError(response);
-                if (response.ok) {
-                    alert('News deleted successfully!');
-                    loadNews();
+                
+                if (!response.ok) {
+                    const data = await response.json();
+                    alert(data.message || 'Failed to delete news');
+                    return;
                 }
+                
+                alert('News deleted successfully!');
+                loadNews();
             } catch (error) {
                 console.error('Error deleting news:', error);
                 alert('Failed to delete news.');

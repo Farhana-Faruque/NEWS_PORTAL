@@ -1,12 +1,19 @@
 const prisma = require('../config/database');
 
+// POST /api/news/:newsId/comments
 const createComment = async (req, res) => {
   try {
     const { newsId } = req.params;
     const { text } = req.body;
+    const parsedNewsId = parseInt(newsId);
 
+    if (isNaN(parsedNewsId)) {
+      return res.status(400).json({ message: 'Invalid news ID' });
+    }
+
+    // Check if news exists
     const news = await prisma.news.findUnique({
-      where: { id: parseInt(newsId) }
+      where: { id: parsedNewsId }
     });
 
     if (!news) {
@@ -17,7 +24,7 @@ const createComment = async (req, res) => {
       data: {
         text,
         userId: req.user.id,
-        newsId: parseInt(newsId)
+        newsId: parsedNewsId
       },
       include: {
         user: {
@@ -36,12 +43,18 @@ const createComment = async (req, res) => {
   }
 };
 
+// GET /api/news/:newsId/comments
 const getComments = async (req, res) => {
   try {
     const { newsId } = req.params;
+    const parsedNewsId = parseInt(newsId);
+
+    if (isNaN(parsedNewsId)) {
+      return res.status(400).json({ message: 'Invalid news ID' });
+    }
 
     const news = await prisma.news.findUnique({
-      where: { id: parseInt(newsId) }
+      where: { id: parsedNewsId }
     });
 
     if (!news) {
@@ -49,7 +62,7 @@ const getComments = async (req, res) => {
     }
 
     const comments = await prisma.comment.findMany({
-      where: { newsId: parseInt(newsId) },
+      where: { newsId: parsedNewsId },
       include: {
         user: {
           select: { id: true, name: true }
@@ -65,23 +78,30 @@ const getComments = async (req, res) => {
   }
 };
 
+// DELETE /api/news/:newsId/comments/:id
 const deleteComment = async (req, res) => {
   try {
     const { id } = req.params;
+    const commentId = parseInt(id);
+
+    if (isNaN(commentId)) {
+      return res.status(400).json({ message: 'Invalid comment ID' });
+    }
 
     const comment = await prisma.comment.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: commentId }
     });
 
     if (!comment) {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
+    // Only the comment author can delete
     if (comment.userId !== req.user.id) {
       return res.status(403).json({ message: 'You can only delete your own comments' });
     }
 
-    await prisma.comment.delete({ where: { id: parseInt(id) } });
+    await prisma.comment.delete({ where: { id: commentId } });
 
     res.json({ message: 'Comment deleted successfully' });
   } catch (error) {
