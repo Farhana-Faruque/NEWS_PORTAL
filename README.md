@@ -1,4 +1,4 @@
-# NEWS_PORTAL
+# News Portal
 
 A simple news portal application with JSON-Server backend.
 
