@@ -44,32 +44,30 @@
 
         async function loadNewsDetail() {
             try {
-                const response = await fetch(`http://localhost:5000/news/${newsId}`);
+                const response = await fetch(`${API_URL}/news/${newsId}`);
+                if (!response.ok) throw new Error('Failed to load');
                 newsData = await response.json();
                 
-                const usersResponse = await fetch('http://localhost:5000/users');
-                const users = await usersResponse.json();
-                
-                displayNewsDetail(newsData, users);
-                displayComments(newsData.comments, users);
+                displayNewsDetail(newsData);
+                displayComments(newsData.comments);
             } catch (error) {
                 console.error('Error loading news:', error);
                 document.getElementById('newsDetail').innerHTML = '<p class="error">Failed to load news.</p>';
             }
         }
 
-        function displayNewsDetail(news, users) {
-            const author = users.find(u => u.id === news.author_id);
+        function displayNewsDetail(news) {
+            const authorName = news.author ? news.author.name : 'Unknown';
             const container = document.getElementById('newsDetail');
             
             container.innerHTML = `
                 <h2>${escapeHtml(news.title)}</h2>
-                <p class="author">By: ${author ? author.name : 'Unknown'}</p>
+                <p class="author">By: ${escapeHtml(authorName)} &middot; ${new Date(news.createdAt).toLocaleDateString()}</p>
                 <div class="news-body">${escapeHtml(news.body)}</div>
             `;
         }
 
-        function displayComments(comments, users) {
+        function displayComments(comments) {
             const container = document.getElementById('commentsList');
             
             if (!comments || comments.length === 0) {
@@ -79,13 +77,13 @@
 
             container.innerHTML = '';
             comments.forEach(comment => {
-                const commenter = users.find(u => u.id === comment.user_id);
+                const commenterName = comment.user ? comment.user.name : 'Unknown';
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'comment';
                 commentDiv.innerHTML = `
-                    <p class="comment-author">${commenter ? commenter.name : 'Unknown'}</p>
+                    <p class="comment-author">${escapeHtml(commenterName)}</p>
                     <p class="comment-text">${escapeHtml(comment.text)}</p>
-                    <p class="comment-time">${new Date(comment.timestamp).toLocaleString()}</p>
+                    <p class="comment-time">${new Date(comment.createdAt).toLocaleString()}</p>
                 `;
                 container.appendChild(commentDiv);
             });
@@ -101,27 +99,26 @@
                 return;
             }
 
-            const newComment = {
-                id: Date.now(),
-                text: commentText,
-                user_id: currentUser.id,
-                timestamp: new Date().toISOString()
-            };
-
-            const updatedComments = [...(newsData.comments || []), newComment];
+            if (commentText.length > 500) {
+                alert('Comment must be 500 characters or less');
+                return;
+            }
 
             try {
-                await fetch(`http://localhost:5000/news/${newsId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        comments: updatedComments
-                    })
+                const response = await fetch(`${API_URL}/news/${newsId}/comments`, {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ text: commentText })
                 });
 
-                alert('Comment added successfully!');
+                handleApiError(response);
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    alert(data.message || 'Failed to add comment');
+                    return;
+                }
+
                 document.getElementById('commentText').value = '';
                 loadNewsDetail();
             } catch (error) {

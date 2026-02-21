@@ -1,21 +1,16 @@
 {
-  "name": "news-portal",
+  "name": "newsportal-frontend",
   "version": "1.0.0",
-  "description": "A simple news portal with JSON-Server",
+  "description": "News Portal Frontend",
   "main": "index.html",
   "scripts": {
-    "start": "json-server --watch db.json --port 5000"
+    "start": "npx serve -l 5500"
   },
   "keywords": [
     "news",
-    "json-server",
-    "crud"
+    "frontend"
   ],
-  "author": "Your Name",
+  "author": "",
   "license": "MIT",
-  "dependencies": {
-    "express": "^5.2.1",
-    "json-server": "^0.17.4"
-  },
   "type": "commonjs"
 }

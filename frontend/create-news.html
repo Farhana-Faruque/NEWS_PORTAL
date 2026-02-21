@@ -65,21 +65,21 @@
                 return;
             }
 
-            const newsData = {
-                title: title,
-                body: body,
-                author_id: currentUser.id,
-                comments: []
-            };
-
             try {
-                await fetch('http://localhost:5000/news', {
+                const response = await fetch(`${API_URL}/news`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(newsData)
+                    headers: authHeaders(),
+                    body: JSON.stringify({ title, body })
                 });
+
+                handleApiError(response);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const msg = data.errors ? data.errors.map(e => e.message).join(', ') : data.message;
+                    alert(msg || 'Failed to create news');
+                    return;
+                }
 
                 alert('News created successfully!');
                 window.location.href = 'news-list.html';

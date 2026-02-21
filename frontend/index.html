@@ -6,9 +6,10 @@
     <title>News Portal</title>
 </head>
 <body>
+    <script src="app.js"></script>
     <script>
-        const user = localStorage.getItem('currentUser');
-        if (user) {
+        // Redirect to login if not logged in, otherwise to news list
+        if (getToken()) {
             window.location.href = 'news-list.html';
         } else {
             window.location.href = 'login.html';

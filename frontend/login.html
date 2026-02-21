@@ -10,56 +10,125 @@
     <div class="container">
         <div class="login-card">
             <h1>NEWS PORTAL</h1>
-            <h2>User Login</h2>
+            <h2 id="formTitle">User Login</h2>
+            <div id="errorMsg" class="error-message"></div>
+
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="userSelect">Select User:</label>
-                    <select id="userSelect" required>
-                        <option value="">-- Choose a user --</option>
-                    </select>
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
                 </div>
                 <button type="submit" class="btn btn-primary">Sign In</button>
             </form>
+
+            <form id="registerForm" style="display:none;">
+                <div class="form-group">
+                    <label for="regName">Name</label>
+                    <input type="text" id="regName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+
+            <p style="text-align:center; margin-top:16px; font-size:14px;">
+                <span id="toggleText">Don't have an account?</span>
+                <a href="#" id="toggleLink" style="color:#000; font-weight:600;">Register</a>
+            </p>
         </div>
     </div>
     <script src="app.js"></script>
     <script>
-        async function loadUsers() {
-            try {
-                const response = await fetch('http://localhost:5000/users');
-                const users = await response.json();
-                const select = document.getElementById('userSelect');
-                
-                users.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = user.name;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading users:', error);
-                alert('Failed to load users. Make sure JSON-Server is running.');
-            }
+        if (getToken()) {
+            window.location.href = 'news-list.html';
         }
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        let isLogin = true;
+
+        document.getElementById('toggleLink').addEventListener('click', function(e) {
             e.preventDefault();
-            const userId = document.getElementById('userSelect').value;
-            
-            if (userId) {
-                const select = document.getElementById('userSelect');
-                const userName = select.options[select.selectedIndex].text;
-                
-                localStorage.setItem('currentUser', JSON.stringify({
-                    id: parseInt(userId),
-                    name: userName
-                }));
-                
+            isLogin = !isLogin;
+            document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('formTitle').textContent = isLogin ? 'User Login' : 'Create Account';
+            document.getElementById('toggleText').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+            document.getElementById('toggleLink').textContent = isLogin ? 'Register' : 'Login';
+            document.getElementById('errorMsg').style.display = 'none';
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.message || 'Login failed');
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
                 window.location.href = 'news-list.html';
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Failed to connect to server. Make sure the backend is running.');
             }
         });
 
-        loadUsers();
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const msg = data.errors ? data.errors.map(e => e.message).join(', ') : data.message;
+                    showError(msg || 'Registration failed');
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
+                window.location.href = 'news-list.html';
+            } catch (error) {
+                console.error('Register error:', error);
+                showError('Failed to connect to server. Make sure the backend is running.');
+            }
+        });
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
     </script>
 </body>
 </html>
