@@ -6,12 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  // Clean existing data
   await prisma.comment.deleteMany();
   await prisma.news.deleteMany();
   await prisma.user.deleteMany();
 
-  // Create users
   const hashedPassword = await bcrypt.hash('password123', 10);
 
   const sabbir = await prisma.user.create({
@@ -40,7 +38,6 @@ async function main() {
 
   console.log('Users created:', { sabbir: sabbir.id, ahmed: ahmed.id, mohsin: mohsin.id });
 
-  // Create news
   const news1 = await prisma.news.create({
     data: {
       title: 'Understanding Neural Networks: A Deep Dive into AI',
@@ -67,7 +64,6 @@ async function main() {
 
   console.log('News created:', { news1: news1.id, news2: news2.id, news3: news3.id });
 
-  // Create comments
   await prisma.comment.createMany({
     data: [
       {
