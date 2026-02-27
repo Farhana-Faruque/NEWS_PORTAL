@@ -7,18 +7,21 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>DU News Portal</h1> 
+    <div class="header">
+        <div class="header-content">
+            <h1>NEWS PORTAL</h1>
             <div class="user-info">
                 <span id="userInfo"></span>
                 <button onclick="logout()" class="btn btn-secondary">Logout</button>
             </div>
         </div>
+    </div>
+
+    <div class="container">
 
         <div class="actions">
-            <a href="create-news.html" class="btn btn-primary">➕ Create News</a>
-            <input type="text" id="searchInput" placeholder="🔍 Search news by title" class="search-input">
+            <a href="create-news" class="btn btn-primary">+ Create News</a>
+            <input type="text" id="searchInput" placeholder="Search news by title..." class="search-input">
         </div>
 
         <div id="newsContainer" class="news-list">
@@ -29,21 +32,30 @@
     <script>
         checkAuth();
         const currentUser = getCurrentUser();
-        document.getElementById('userInfo').textContent = ` ${currentUser.name}`;
+        document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.name}`;
 
         let allNews = [];
 
         async function loadNews() {
             try {
+                console.log('Loading news from API...');
                 const response = await fetch(`${API_URL}/news`);
+                console.log(`News list response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load (Status: ${response.status})`);
+                }
+                
                 allNews = await response.json();
+                console.log(`Loaded ${allNews.length} news items:`, allNews);
                 displayNews(allNews);
             } catch (error) {
                 console.error('Error loading news:', error);
-                document.getElementById('newsContainer').innerHTML = '<p class="error">Failed to load news.</p>';
+                document.getElementById('newsContainer').innerHTML = `<p class="error">Failed to load news: ${error.message}</p>`;
             }
         }
-        async function displayNews(newsList) {
+
+        function displayNews(newsList) {
             const container = document.getElementById('newsContainer');
             
             if (newsList.length === 0) {
@@ -52,6 +64,7 @@
             }
 
             container.innerHTML = '';
+            console.log('Displaying news items...');
             
             for (const news of newsList) {
                 const authorName = news.author ? news.author.name : 'Unknown';
@@ -59,15 +72,17 @@
                 
                 const card = document.createElement('div');
                 card.className = 'news-card';
+                const newsLink = `news-detail?id=${news.id}`;
+                console.log(`Creating news card for ID ${news.id} with link: ${newsLink}`);
                 card.innerHTML = `
                     <h3>${escapeHtml(news.title)}</h3>
-                    <p class="author">By: ${authorName}</p>
+                    <p class="author">By: ${escapeHtml(authorName)} &middot; ${new Date(news.createdAt).toLocaleDateString()}</p>
                     <p class="preview">${escapeHtml(news.body.substring(0, 150))}...</p>
                     <div class="comment-count">💬 ${commentCount} comment${commentCount !== 1 ? 's' : ''}</div>
                     <div class="news-actions">
-                        <a href="news-detail.html?id=${news.id}" class="btn btn-primary">View Details</a>
+                        <a href="${newsLink}" class="btn btn-primary">View Details</a>
                         ${news.authorId === currentUser.id ? `
-                            <a href="edit-news.html?id=${news.id}" class="btn btn-secondary">Edit</a>
+                            <a href="edit-news?id=${news.id}" class="btn btn-secondary">Edit</a>
                             <button onclick="deleteNews(${news.id})" class="btn btn-danger">Delete</button>
                         ` : ''}
                     </div>
@@ -82,23 +97,20 @@
             try {
                 const response = await fetch(`${API_URL}/news/${id}`, {
                     method: 'DELETE',
-                    headers: getAuthHeaders()
+                    headers: authHeaders()
                 });
-                
-                if (!response.ok) {
-                    const data = await response.json();
-                    alert(data.message || 'Failed to delete news');
-                    return;
+                handleApiError(response);
+                if (response.ok) {
+                    alert('News deleted successfully!');
+                    loadNews();
                 }
-                
-                alert('News deleted successfully!');
-                loadNews();
             } catch (error) {
                 console.error('Error deleting news:', error);
                 alert('Failed to delete news.');
             }
         }
 
+        // Search functionality
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filtered = allNews.filter(news => 

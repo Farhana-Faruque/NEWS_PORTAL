@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 
+
 const getAllNews = async (req, res) => {
   try {
     const { search } = req.query;
@@ -28,11 +29,13 @@ const getAllNews = async (req, res) => {
   }
 };
 
+
 const getNewsById = async (req, res) => {
   try {
     const { id } = req.params;
-    const newsId = parseInt(id);
-
+    
+    const newsId = parseInt(id, 10);
+    
     if (isNaN(newsId)) {
       return res.status(400).json({ message: 'Invalid news ID' });
     }
@@ -96,8 +99,9 @@ const updateNews = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, body } = req.body;
-    const newsId = parseInt(id);
-
+    
+    const newsId = parseInt(id, 10);
+    
     if (isNaN(newsId)) {
       return res.status(400).json({ message: 'Invalid news ID' });
     }
@@ -141,8 +145,9 @@ const updateNews = async (req, res) => {
 const deleteNews = async (req, res) => {
   try {
     const { id } = req.params;
-    const newsId = parseInt(id);
-
+    
+    const newsId = parseInt(id, 10);
+    
     if (isNaN(newsId)) {
       return res.status(400).json({ message: 'Invalid news ID' });
     }

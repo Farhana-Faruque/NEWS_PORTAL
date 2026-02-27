@@ -4,14 +4,15 @@ const createComment = async (req, res) => {
   try {
     const { newsId } = req.params;
     const { text } = req.body;
-    const parsedNewsId = parseInt(newsId);
-
-    if (isNaN(parsedNewsId)) {
+    
+    const commentNewsId = parseInt(newsId, 10);
+    
+    if (isNaN(commentNewsId)) {
       return res.status(400).json({ message: 'Invalid news ID' });
     }
 
     const news = await prisma.news.findUnique({
-      where: { id: parsedNewsId }
+      where: { id: commentNewsId }
     });
 
     if (!news) {
@@ -22,7 +23,7 @@ const createComment = async (req, res) => {
       data: {
         text,
         userId: req.user.id,
-        newsId: parsedNewsId
+        newsId: commentNewsId
       },
       include: {
         user: {
@@ -44,14 +45,15 @@ const createComment = async (req, res) => {
 const getComments = async (req, res) => {
   try {
     const { newsId } = req.params;
-    const parsedNewsId = parseInt(newsId);
-
-    if (isNaN(parsedNewsId)) {
+    
+    const commentNewsId = parseInt(newsId, 10);
+    
+    if (isNaN(commentNewsId)) {
       return res.status(400).json({ message: 'Invalid news ID' });
     }
 
     const news = await prisma.news.findUnique({
-      where: { id: parsedNewsId }
+      where: { id: commentNewsId }
     });
 
     if (!news) {
@@ -59,7 +61,7 @@ const getComments = async (req, res) => {
     }
 
     const comments = await prisma.comment.findMany({
-      where: { newsId: parsedNewsId },
+      where: { newsId: commentNewsId },
       include: {
         user: {
           select: { id: true, name: true }
@@ -78,8 +80,9 @@ const getComments = async (req, res) => {
 const deleteComment = async (req, res) => {
   try {
     const { id } = req.params;
-    const commentId = parseInt(id);
-
+    
+    const commentId = parseInt(id, 10);
+    
     if (isNaN(commentId)) {
       return res.status(400).json({ message: 'Invalid comment ID' });
     }

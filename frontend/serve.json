@@ -1,0 +1,13 @@
+{
+  "public": ".",
+  "cleanUrls": false,
+  "directoryListing": false,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/news-list", "destination": "/news-list.html" },
+    { "source": "/news-detail", "destination": "/news-detail.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/create-news", "destination": "/create-news.html" },
+    { "source": "/edit-news", "destination": "/edit-news.html" }
+  ]
+}

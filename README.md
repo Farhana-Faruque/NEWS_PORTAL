@@ -1,4 +1,4 @@
-# News Portal
+# NEWS_PORTAL
 
 A simple news portal application with JSON-Server backend.
 
@@ -36,7 +36,7 @@ Or open the `index.html` file directly in your browser while the server is runni
 ## Available Users
 The application comes with pre-configured test users:
 - Alice Rahman (alice@example.com)
-- Sabbir Ahmed (sabbir@example.com)
+- Karim Hossain (karim@example.com)
 - Nusrat Jahan (nusrat@example.com)
 
 ## Project Structure

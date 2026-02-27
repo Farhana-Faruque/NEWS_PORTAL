@@ -7,24 +7,29 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>DU News Portal</h1>
+    <div class="header">
+        <div class="header-content">
+            <h1>NEWS PORTAL</h1>
             <div class="user-info">
                 <span id="userInfo"></span>
-                <a href="news-list.html" class="btn btn-secondary">Back to List</a>
+                <a href="news-list" class="btn btn-secondary">Back to List</a>
             </div>
         </div>
+    </div>
+
+    <div class="container">
         <div id="newsDetail" class="news-detail">
             <p class="loading">Loading...</p>
         </div>
+
         <div id="commentsSection" class="comments-section">
             <h3>Comments</h3>
             <div id="commentsList"></div>
+            
             <form id="commentForm" class="comment-form">
                 <h4>Add a Comment</h4>
                 <textarea id="commentText" placeholder="Write your comment..." rows="3" required></textarea>
-                <button type="submit" class="btn btn-primary">Post Comment</button>
+                <button type="submit" class="btn btn-primary">Post</button>
             </form>
         </div>
     </div>
@@ -32,37 +37,57 @@
     <script>
         checkAuth();
         const currentUser = getCurrentUser();
-        document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.name}`;
+        
+        if (currentUser) {
+            document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.name}`;
+        } else {
+            console.error('No current user found');
+            window.location.href = 'login';
+        }
+
         const newsId = new URLSearchParams(window.location.search).get('id');
+        
+        if (!newsId) {
+            document.getElementById('newsDetail').innerHTML = '<p class="error">News ID not provided.</p>';
+        }
+        
         let newsData = null;
 
         async function loadNewsDetail() {
             try {
+                console.log(`Loading news with ID: ${newsId}`);
                 const response = await fetch(`${API_URL}/news/${newsId}`);
-                newsData = await response.json();
+                console.log(`News detail response status: ${response.status}`);
                 
                 if (!response.ok) {
-                    document.getElementById('newsDetail').innerHTML = `<p class="error">${newsData.message || 'Failed to load news.'}</p>`;
-                    return;
+                    throw new Error(`Failed to load (Status: ${response.status})`);
                 }
                 
+                newsData = await response.json();
+                console.log('News data loaded:', newsData);
+                
                 displayNewsDetail(newsData);
-                displayComments(newsData.comments);
+                displayComments(newsData.comments || []);
             } catch (error) {
                 console.error('Error loading news:', error);
-                document.getElementById('newsDetail').innerHTML = '<p class="error">Failed to load news.</p>';
+                document.getElementById('newsDetail').innerHTML = `<p class="error">Failed to load news: ${error.message}</p>`;
             }
         }
+
         function displayNewsDetail(news) {
             const authorName = news.author ? news.author.name : 'Unknown';
             const container = document.getElementById('newsDetail');
             
+            // Escape HTML in body and preserve newlines by converting to <br>
+            const bodyWithBreaks = escapeHtml(news.body).replace(/\n/g, '<br>').replace(/\r/g, '');
+            
             container.innerHTML = `
                 <h2>${escapeHtml(news.title)}</h2>
-                <p class="author">By: ${authorName}</p>
-                <div class="news-body">${escapeHtml(news.body)}</div>
+                <p class="author">By: ${escapeHtml(authorName)} &middot; ${new Date(news.createdAt).toLocaleDateString()}</p>
+                <div class="news-body">${bodyWithBreaks}</div>
             `;
         }
+
         function displayComments(comments) {
             const container = document.getElementById('commentsList');
             
@@ -70,13 +95,14 @@
                 container.innerHTML = '<p class="empty">No comments yet. Be the first to comment!</p>';
                 return;
             }
+
             container.innerHTML = '';
             comments.forEach(comment => {
                 const commenterName = comment.user ? comment.user.name : 'Unknown';
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'comment';
                 commentDiv.innerHTML = `
-                    <p class="comment-author">${commenterName}</p>
+                    <p class="comment-author">${escapeHtml(commenterName)}</p>
                     <p class="comment-text">${escapeHtml(comment.text)}</p>
                     <p class="comment-time">${new Date(comment.createdAt).toLocaleString()}</p>
                 `;
@@ -94,29 +120,59 @@
                 return;
             }
 
+            if (commentText.length > 500) {
+                alert('Comment must be 500 characters or less');
+                return;
+            }
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Posting...';
+
             try {
+                console.log(`Posting comment to ${API_URL}/news/${newsId}/comments`);
+                console.log('Request body:', JSON.stringify({ text: commentText }));
+                
                 const response = await fetch(`${API_URL}/news/${newsId}/comments`, {
                     method: 'POST',
-                    headers: getAuthHeaders(),
+                    headers: authHeaders(),
                     body: JSON.stringify({ text: commentText })
                 });
-
-                const data = await response.json();
                 
-                if (!response.ok) {
-                    alert(data.message || 'Failed to add comment');
+                console.log(`Comment response status: ${response.status}`);
+
+                if (response.status === 401) {
+                    console.error('Unauthorized - logging out');
+                    logout();
                     return;
                 }
 
-                alert('Comment added successfully!');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Comment error response:', errorData);
+                    alert(errorData.message || `Failed to add comment (Status: ${response.status})`);
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                    return;
+                }
+
+                const commentResponse = await response.json();
+                console.log('Comment added successfully:', commentResponse);
+                
                 document.getElementById('commentText').value = '';
+                submitButton.textContent = 'Post';
+                alert('Comment posted successfully!');
                 loadNewsDetail();
             } catch (error) {
                 console.error('Error adding comment:', error);
-                alert('Failed to add comment.');
+                alert('Failed to add comment: ' + error.message);
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
             }
         });
 
+        // Load news detail when page loads
         loadNewsDetail();
     </script>
 </body>

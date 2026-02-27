@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DU News Portal</title>
+    <title>News Portal</title>
 </head>
 <body>
+    <script src="app.js"></script>
     <script>
-        const user = localStorage.getItem('currentUser');
-        if (user) {
-            window.location.href = 'news-list.html';
+        // Redirect to login if not logged in, otherwise to news list
+        if (getToken()) {
+            window.location.href = 'news-list';
         } else {
-            window.location.href = 'login.html';
+            window.location.href = 'login';
         }
     </script>
 </body>
