@@ -8,7 +8,6 @@
 <body>
     <script src="app.js"></script>
     <script>
-        // Redirect to login if not logged in, otherwise to news list
         if (getToken()) {
             window.location.href = 'news-list';
         } else {

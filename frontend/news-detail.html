@@ -78,7 +78,6 @@
             const authorName = news.author ? news.author.name : 'Unknown';
             const container = document.getElementById('newsDetail');
             
-            // Escape HTML in body and preserve newlines by converting to <br>
             const bodyWithBreaks = escapeHtml(news.body).replace(/\n/g, '<br>').replace(/\r/g, '');
             
             container.innerHTML = `
@@ -172,7 +171,6 @@
             }
         });
 
-        // Load news detail when page loads
         loadNewsDetail();
     </script>
 </body>

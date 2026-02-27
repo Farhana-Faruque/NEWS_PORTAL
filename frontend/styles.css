@@ -18,7 +18,6 @@ body {
     padding: 0 20px;
 }
 
-/* HEADER STYLES */
 .header {
     background: white;
     padding: 20px 0;
@@ -59,7 +58,6 @@ body {
     font-size: 14px;
 }
 
-/* LOGIN CARD */
 .login-card {
     background: white;
     max-width: 480px;
@@ -86,7 +84,6 @@ body {
     font-weight: 500;
 }
 
-/* FORM STYLES */
 .form-group {
     margin-bottom: 24px;
 }
@@ -136,7 +133,6 @@ body {
     color: #999;
 }
 
-/* BUTTON STYLES */
 .btn {
     padding: 11px 24px;
     border: none;
@@ -188,7 +184,6 @@ body {
     font-size: 12px;
 }
 
-/* ACTIONS BAR */
 .actions {
     background: white;
     padding: 24px 30px;
@@ -225,7 +220,6 @@ body {
     background: #f8fbfd;
 }
 
-/* NEWS LIST */
 .news-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -293,7 +287,6 @@ body {
     padding: 9px 16px;
 }
 
-/* NEWS DETAIL */
 .news-detail {
     background: white;
     padding: 40px;
@@ -324,7 +317,6 @@ body {
     font-size: 15px;
 }
 
-/* COMMENTS */
 .comments-section {
     background: white;
     padding: 40px;
@@ -380,7 +372,6 @@ body {
     font-size: 15px;
 }
 
-/* FORM CONTAINER */
 .form-container {
     background: white;
     padding: 40px;
@@ -396,7 +387,6 @@ body {
     font-weight: 700;
 }
 
-/* MESSAGES */
 .loading,
 .empty,
 .error {
@@ -411,7 +401,6 @@ body {
     font-weight: 600;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
     .header-content {
         flex-direction: column;

@@ -13,9 +13,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
-// Register more specific routes FIRST (comments) to avoid conflicts
 app.use('/api/news/:newsId/comments', commentRoutes);
-// Then register general news routes
 app.use('/api/news', newsRoutes);
 
 

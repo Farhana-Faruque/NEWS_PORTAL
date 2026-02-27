@@ -42,7 +42,6 @@
         const currentUser = getCurrentUser();
         document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.name}`;
 
-        // Character count
         document.getElementById('body').addEventListener('input', function() {
             const count = this.value.length;
             document.getElementById('charCount').textContent = `${count} character${count !== 1 ? 's' : ''}`;
@@ -54,7 +53,6 @@
             const title = document.getElementById('title').value.trim();
             const body = document.getElementById('body').value.trim();
             
-            // Validation
             if (!title) {
                 alert('Title cannot be empty');
                 return;
